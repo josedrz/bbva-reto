@@ -15,6 +15,7 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { Fragment, useState } from "react";
+import Location from "./Map";
 
 const user = {
   name: "Debbie Lewis",
@@ -31,44 +32,46 @@ const userNavigation = [
   { name: "Sign out", href: "#" },
 ];
 
+const subNavigation = [
+  { name: "Identificación", href: "#", icon: UserCircleIcon, current: true },
+  {
+    name: "Localización y entorno",
+    href: "#",
+    icon: MapPinIcon,
+    current: false,
+  },
+  {
+    name: "Tipología y posesión",
+    href: "#",
+    icon: MagnifyingGlassIcon,
+    current: false,
+  },
+  {
+    name: "Características del edificio",
+    href: "#",
+    icon: BuildingOfficeIcon,
+    current: false,
+  },
+  {
+    name: "Características del inmueble",
+    href: "#",
+    icon: ClipboardDocumentListIcon,
+    current: false,
+  },
+  {
+    name: "Archivos a cargar",
+    href: "#",
+    icon: DocumentArrowUpIcon,
+    current: false,
+  },
+];
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
 export default function AppView() {
-  const subNavigation = [
-    { name: "Identificación", href: "#", icon: UserCircleIcon, current: true },
-    {
-      name: "Localización y entorno",
-      href: "#",
-      icon: MapPinIcon,
-      current: false,
-    },
-    {
-      name: "Tipología y posesión",
-      href: "#",
-      icon: MagnifyingGlassIcon,
-      current: false,
-    },
-    {
-      name: "Características del edificio",
-      href: "#",
-      icon: BuildingOfficeIcon,
-      current: false,
-    },
-    {
-      name: "Características del inmueble",
-      href: "#",
-      icon: ClipboardDocumentListIcon,
-      current: false,
-    },
-    {
-      name: "Archivos a cargar",
-      href: "#",
-      icon: DocumentArrowUpIcon,
-      current: false,
-    },
-  ];
+  const [nav, setNav] = useState("Identificación");
 
   return (
     <div>
@@ -349,16 +352,17 @@ export default function AppView() {
                       key={item.name}
                       href={item.href}
                       className={classNames(
-                        item.current
+                        item.name === nav
                           ? "bg-custom-500 border-custom-200 text-white hover:bg-custom-500"
                           : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900",
                         "group border-l-4 px-3 py-2 flex items-center text-sm font-medium"
                       )}
-                      aria-current={item.current ? "page" : undefined}
+                      aria-current={item.name === nav ? "page" : undefined}
+                      onClick={() => setNav(item.name)}
                     >
                       <item.icon
                         className={classNames(
-                          item.current
+                          item.name === nav
                             ? "text-white"
                             : "text-gray-400 group-hover:text-gray-500",
                           "flex-shrink-0 -ml-1 mr-3 h-6 w-6"
@@ -372,194 +376,198 @@ export default function AppView() {
               </aside>
 
               <div className="divide-y divide-gray-200 lg:col-span-9">
-                {/* S1 */}
-                <div className="py-6 px-4 sm:p-6 lg:pb-8">
-                  <h2 className="text-md font-medium leading-6 text-gray-900">
-                    Titulación e inscripción
-                  </h2>
-                  <div className="mt-4 grid grid-cols-3 gap-4">
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Matriz
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
+                {nav === "Identificación" && (
+                  <>
+                    {/* S1 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Titulación e inscripción
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Matriz
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nro
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Fecha
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Nro
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Solicitante
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Banco
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Oficina
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Funcionario
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Fecha
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
+                    {/* S3 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Cliente
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Tipo documento
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nro documento
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nombres y apellidos
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                {/* S2 */}
-                <div className="py-6 px-4 sm:p-6 lg:pb-8">
-                  <h2 className="text-md font-medium leading-6 text-gray-900">
-                    Solicitante
-                  </h2>
-                  <div className="mt-4 grid grid-cols-3 gap-4">
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Banco
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
+                    {/* S4 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Propietario
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Tipo documento
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nro documento
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nombres y apellidos
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Oficina
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Funcionario
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-                {/* S3 */}
-                <div className="py-6 px-4 sm:p-6 lg:pb-8">
-                  <h2 className="text-md font-medium leading-6 text-gray-900">
-                    Cliente
-                  </h2>
-                  <div className="mt-4 grid grid-cols-3 gap-4">
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Tipo documento
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Nro documento
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Nombres y apellidos
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="py-6 px-4 sm:p-6 lg:pb-8">
-                  <h2 className="text-md font-medium leading-6 text-gray-900">
-                    Propietario
-                  </h2>
-                  <div className="mt-4 grid grid-cols-3 gap-4">
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Tipo documento
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Nro documento
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="first-name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Nombres y apellidos
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
+                {nav === "Localización y entorno" && (
+                  <>
+                    <Location/ >
+                  </>
+                )}
                 {/* Buttons */}
-                <div className="flex justify-end py-4 px-4 sm:px-6">
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-custom-500 focus:ring-offset-2"
-                  >
-                    Guardar
-                  </button>
+                <div className="flex justify-end py-4 px-4 sm:px-6 pt-6">
                   <button
                     type="submit"
                     className="ml-5 inline-flex justify-center rounded-md border border-transparent bg-custom-700 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-custom-800 focus:outline-none focus:ring-2 focus:ring-custom-500 focus:ring-offset-2"
                   >
-                    Continuar
+                    Guardar
                   </button>
                 </div>
               </div>
