@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Fragment, useState } from "react";
 import Location from "./Map";
+import Dropzone from "./Dropzone";
 
 const user = {
   name: "Debbie Lewis",
@@ -558,7 +559,1126 @@ export default function AppView() {
                 )}
                 {nav === "Localización y entorno" && (
                   <>
-                    <Location/ >
+                    <Location />
+                  </>
+                )}
+                {nav === "Tipología y posesión" && (
+                  <>
+                    {/* S1 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Inmueble
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Tipo de inmueble
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Departamento</option>
+                            <option>Casa</option>
+                            <option>Terreno/lote</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Sub tipo de inmueble
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Apartamento de campo</option>
+                            <option>Apartamento de ciudad</option>
+                            <option>Apartamento de playa</option>
+                            <option>Departamento Loft</option>
+                            <option>Departamento PentHouse</option>
+                            <option>Minidepartamento</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Ocupante
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Ocupado</option>
+                            <option>Desocupado</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Uso
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Tipo de uso
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Comercio</option>
+                            <option>Vivienda</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Porcentaje de uso
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {nav === "Características del edificio" && (
+                  <>
+                    {/* S1 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Construcción y obras
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Material predominante
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Concreto</option>
+                            <option>Madera</option>
+                            <option>Adove</option>
+                            <option>Estera</option>
+                            <option>Otro</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Edad efectiva (Antigüedad)
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Estado de conservación
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Muy bueno</option>
+                            <option>Bueno</option>
+                            <option>Regular</option>
+                            <option>Malo</option>
+                            <option>Muy malo</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Descripción general
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nro de pisos
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nro de sotanos
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Nro de asensores
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Áreas comunes
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Si</option>
+                            <option>No</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Vista inmueble
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Al interior</option>
+                            <option>Al exterior - calle</option>
+                            <option>Al exterior - parque</option>
+                            <option>Al exterior - playa</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Conexión de servicios
+                          </label>
+                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
+                            <option>Si</option>
+                            <option>No</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Obras complementarias
+                      </h2>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Recepción
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Hall de ingreso
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Seguridad
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Cerco eléctrico
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Alarmas
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Control de accesos
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Pisina
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Zona de parrillas
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Áreas infantiles
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Canchas deportivas
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Sauna
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Gimnasio
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Parque iterno
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Zona de entretenimiento
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Cochera de visitas
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Pet friendly
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {nav === "Características del inmueble" && (
+                  <>
+                    {/* S1 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Descripción general
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Piso ocupado en edificio
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Área total (m2)
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Área construida (m2)
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Distribución
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Dormitorios
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Baños
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Estacionamiento
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Obras complementarias
+                      </h2>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Closet
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Cocina
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Repostero
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Cuarto de servicio
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Dúplex
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Triplex
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Terraza
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Vista al parque
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Vista a la ciudad
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Vista al mar
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Intercomunicador
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Jacuzzi
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-4 gap-4">
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Walk in closet
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Jardín
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Chimenea
+                            </label>
+                          </div>
+                        </div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="comments"
+                              aria-describedby="comments-description"
+                              name="comments"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="comments"
+                              className="font-medium text-gray-700"
+                            >
+                              Patio
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {nav === "Archivos a cargar" && (
+                  <>
+                    {/* S1 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Fotos:
+                      </h2>
+                      <div className="mt-3">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Fachada y exteriores
+                          </label>
+                          <Dropzone
+                            content={[]}
+                            setNewContent={(v) => console.log(v)}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Áreas comunes
+                          </label>
+                          <Dropzone
+                            content={[]}
+                            setNewContent={(v) => console.log(v)}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Interior
+                          </label>
+                          <Dropzone
+                            content={[]}
+                            setNewContent={(v) => console.log(v)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* S2 */}
+                    <div className="py-6 px-4 sm:p-6">
+                      <h2 className="text-md font-medium leading-6 text-gray-900">
+                        Documentos
+                      </h2>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            PR Matriz
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Precio urbano
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Planos
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            CRI
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Parámetros urbanos
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                           Tasación anterior
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-4">
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Cuadro de acabados
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Memoria descriptiva
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="first-name"
+                            className="block text-sm font-medium text-gray-700"
+                          >
+                            Minuta
+                          </label>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
                 {/* Buttons */}
