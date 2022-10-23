@@ -165,23 +165,24 @@ export default function AppView(props) {
         "Sin vía",
       ];
       //vias.findIndex((item) => item === editState["Tipo de vía"])
+      console.log(vias.findIndex((item) => item === editState["Tipo de vía"]));
       var raw = JSON.stringify({
-        "type": "new",
-        "ide_sol_id": "",
-        "data_update": {
-          "tipo_de_via": 1,
-          "numero_de_estacionamiento": editState["Nro de estacionamientos"],
-          "depositos": editState["Nro de depositos"],
-          "latitud_decimal": editState["lat"],
-          "longitud_decimal": editState["lng"],
-          "area_construccion": editState["Área construida (m2)"],
-          "area_terreno": editState["Área total (m2)"],
-          "distrito": editState["distrito"]["nombre_ubigeo"],
-          "estado_de_conservacion": editState["Estado de conservación"],
-          "categoria_del_bien": editState["Categoria del bien"],
-          "metodo_representado": editState["Método Representado"],
-          "edad": editState["Edad efectiva (Antigüedad)"],
-        }
+        type: "new",
+        ide_sol_id: "",
+        data_update: {
+          tipo_de_via: 1,
+          numero_de_estacionamiento: editState["Nro de estacionamientos"],
+          depositos: editState["Nro de depositos"],
+          latitud_decimal: editState["lat"],
+          longitud_decimal: editState["lng"],
+          area_construccion: editState["Área construida (m2)"],
+          area_terreno: editState["Área total (m2)"],
+          distrito: editState["distrito"]["nombre_ubigeo"],
+          estado_de_conservacion: editState["Estado de conservación"],
+          categoria_del_bien: editState["Categoria del bien"],
+          metodo_representado: editState["Método Representado"],
+          edad: editState["Edad efectiva (Antigüedad)"],
+        },
       });
 
       var requestOptions = {
@@ -300,6 +301,11 @@ export default function AppView(props) {
     }
     setRegistrosRE(registrosFiltrados);
   };
+  // separa un numero en miles
+  const separadorMiles = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   return (
     <div>
       <Disclosure
@@ -1368,16 +1374,21 @@ export default function AppView(props) {
                               USD:
                             </div>
                             <div className="text-2xl">
-                              {editState["valuacion"].valorUSD || "N/A"}
+                              {separadorMiles(
+                                editState["valuacion"].valorUSD
+                              ) || "N/A"}
                             </div>
                             <div className="text-xs text-gray-400 my-2">
-                              Tipo de cambio:  {editState["valuacion"].cambio || "N/A"}
+                              Tipo de cambio:{" "}
+                              {editState["valuacion"].cambio || "N/A"}
                             </div>
                             <div className="text-xs text-gray-600 my-2">
                               PEN:
                             </div>
                             <div className="text-2xl">
-                              {editState["valuacion"].valorPEN || "N/A"}
+                              {separadorMiles(
+                                editState["valuacion"].valorPEN
+                              ) || "N/A"}
                             </div>
                           </div>
                           <div>
@@ -1385,25 +1396,29 @@ export default function AppView(props) {
                               Precio estimado 2019 (PEN)
                             </div>
                             <div className="text-md">
-                            {editState["valuacion"].p2019 || "N/A"}
+                              {separadorMiles(editState["valuacion"].p2019) ||
+                                "N/A"}
                             </div>
                             <div className="text-xs text-gray-500 my-2">
                               Precio estimado 2020 (PEN)
                             </div>
                             <div className="text-md">
-                            {editState["valuacion"].p2020 || "N/A"}
+                              {separadorMiles(editState["valuacion"].p2020) ||
+                                "N/A"}
                             </div>
                             <div className="text-xs text-gray-500 my-2">
                               Precio estimado 2021 (PEN)
                             </div>
                             <div className="text-md">
-                            {editState["valuacion"].p2021 || "N/A"}
+                              {separadorMiles(editState["valuacion"].p2021) ||
+                                "N/A"}
                             </div>
                             <div className="text-xs text-gray-500 my-2">
                               Precio estimado 2022 (PEN)
                             </div>
                             <div className="text-md">
-                            {editState["valuacion"].p2022 || "N/A"}
+                              {separadorMiles(editState["valuacion"].p2022) ||
+                                "N/A"}
                             </div>
                           </div>
                         </div>
