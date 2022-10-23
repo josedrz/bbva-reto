@@ -13,25 +13,24 @@ import {
   DocumentArrowUpIcon,
   MagnifyingGlassIcon,
   ClipboardDocumentListIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
-import { Fragment, useState } from "react";
-import Location from "./Map";
-import Dropzone from "./Dropzone";
-
-const user = {
-  name: "Debbie Lewis",
-  handle: "deblewis",
-  email: "debbielewis@example.com",
-  imageUrl:
-    "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=320&h=320&q=80",
-};
-const navigation = [];
-
-const userNavigation = [
-  { name: "Your Profile", href: "#" },
-  { name: "Settings", href: "#" },
-  { name: "Sign out", href: "#" },
-];
+import { Fragment, useEffect, useState } from "react";
+import Location from "../base/Map";
+import LocationView from "../base/MapView";
+import {
+  getFirestore,
+  doc,
+  onSnapshot,
+  collection,
+  getDocs,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+  deleteField,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
 
 const subNavigation = [
   { name: "Identificación", href: "#", icon: UserCircleIcon, current: true },
@@ -42,38 +41,194 @@ const subNavigation = [
     current: false,
   },
   {
-    name: "Tipología y posesión",
-    href: "#",
-    icon: MagnifyingGlassIcon,
-    current: false,
-  },
-  {
-    name: "Características del edificio",
+    name: "Características del inmueble",
     href: "#",
     icon: BuildingOfficeIcon,
     current: false,
   },
   {
-    name: "Características del inmueble",
+    name: "Características de ejecución",
     href: "#",
     icon: ClipboardDocumentListIcon,
     current: false,
   },
+];
+const subNavigationView = [
+  { name: "Valoración", href: "#", icon: CurrencyDollarIcon, current: true },
+  { name: "Identificación", href: "#", icon: UserCircleIcon, current: true },
   {
-    name: "Archivos a cargar",
+    name: "Localización y entorno",
     href: "#",
-    icon: DocumentArrowUpIcon,
+    icon: MapPinIcon,
+    current: false,
+  },
+  {
+    name: "Características del inmueble",
+    href: "#",
+    icon: BuildingOfficeIcon,
+    current: false,
+  },
+  {
+    name: "Características de ejecución",
+    href: "#",
+    icon: ClipboardDocumentListIcon,
     current: false,
   },
 ];
-
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function AppView() {
+export default function AppView(props) {
+  const [resgistros, setRegistros] = useState([]);
+  const [resgistrosRE, setRegistrosRE] = useState([]);
+  const [viewState, setViewState] = useState("main");
+  const [editState, setEditState] = useState({});
   const [nav, setNav] = useState("Identificación");
+  const nuevoRegistro = async () => {
+    const db = getFirestore();
+    const id = doc(collection(db, "registros"));
+    const key = id["_key"]["path"]["segments"][1];
+    const codigo = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const content = {
+      key: key,
+      id: codigo,
+      Banco: "BBVA",
+      state: "En proceso",
+      lat: -12.0487147,
+      lng: -77.0499791,
+      departamento: {
+        id_ubigeo: "2534",
+        nombre_ubigeo: "Amazonas",
+        codigo_ubigeo: "01",
+        etiqueta_ubigeo: "Amazonas, Perú",
+        buscador_ubigeo: "amazonas perú",
+        numero_hijos_ubigeo: "7",
+        nivel_ubigeo: "1",
+        id_padre_ubigeo: "2533",
+        init: true,
+      },
+      provincia: {
+        id_ubigeo: "2557",
+        nombre_ubigeo: "Bagua",
+        codigo_ubigeo: "02",
+        etiqueta_ubigeo: "Bagua, Amazonas",
+        buscador_ubigeo: "bagua amazonas",
+        numero_hijos_ubigeo: "5",
+        nivel_ubigeo: "2",
+        id_padre_ubigeo: "2534",
+        init: true,
+      },
+      distrito: {
+        id_ubigeo: "2559",
+        nombre_ubigeo: "Aramango",
+        codigo_ubigeo: "02",
+        etiqueta_ubigeo: "Aramango, Bagua",
+        buscador_ubigeo: "aramango bagua",
+        numero_hijos_ubigeo: "0",
+        nivel_ubigeo: "3",
+        id_padre_ubigeo: "2557",
+        init: true,
+      },
+    };
+    try {
+      setEditState(content);
+      setViewState("edit");
+      await setDoc(id, content);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const guardar = async () => {
+    const db = getFirestore();
+    const id = doc(collection(db, "registros"), editState.key);
+    try {
+      await updateDoc(id, editState);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const enviar = async () => {
+    const db = getFirestore();
+    const id = doc(collection(db, "registros"), editState.key);
+    try {
+      // llama a la API
+      await updateDoc(id, {
+        ...editState,
+        state: "Culminado",
+        valuacion: {
+          valor: 2000,
+          a1: 1000,
+          a2: 800,
+          a3: 1990,
+        },
+      });
+      setViewState("view");
+      setNav("Valoración");
+      // muestra vista de ver
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    const db = getFirestore();
+    const query = collection(db, "registros");
+    // Obtén actualizaciones en tiempo real de quotesRef, sin did todos
+    onSnapshot(
+      query,
+      (querySnapshot) => {
+        const userData = [];
+        querySnapshot.forEach((doc) => {
+          userData.push(doc.data());
+        });
+        //dt
+        setRegistros(userData);
+        setRegistrosRE(userData);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }, []);
 
+  const ordenar = (array) => {
+    return array.sort((a, b) => {
+      if (a.Fecha > b.Fecha) {
+        return -1;
+      }
+      if (a.Fecha > b.Fecha) {
+        return 1;
+      }
+      return 0;
+    });
+  };
+  const culminados = () => {
+    return resgistros.filter((item) => item.state === "Culminado").length;
+  };
+  const pendientes = () => {
+    return resgistros.filter((item) => item.state === "En proceso").length;
+  };
+  const Buscar = (e) => {
+    const registrosCopy = [...resgistros];
+    const title = e.target.value;
+    const registrosFiltrados = filterByTitle(title);
+    function filterByTitle(title) {
+      return registrosCopy.filter((card) => {
+        var newChart = "";
+        for (let index = 0; index < title.length; index++) {
+          var chart = card.id.charAt(index);
+          newChart = newChart + chart;
+        }
+        const removeAccents = (str) => {
+          return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        };
+        return removeAccents(newChart.toLowerCase()).includes(
+          title.toLowerCase()
+        );
+      });
+    }
+    setRegistrosRE(registrosFiltrados);
+  };
   return (
     <div>
       <Disclosure
@@ -125,22 +280,7 @@ export default function AppView() {
                       </svg>
                     </div>
                     <div className="hidden lg:ml-6 lg:block lg:space-x-4">
-                      <div className="flex">
-                        {navigation.map((item) => (
-                          <a
-                            key={item.name}
-                            href={item.href}
-                            className={classNames(
-                              item.current
-                                ? "bg-black bg-opacity-25"
-                                : "hover:bg-custom-800",
-                              "rounded-md py-2 px-3 text-sm font-medium text-white"
-                            )}
-                          >
-                            {item.name}
-                          </a>
-                        ))}
-                      </div>
+                      <div className="flex"></div>
                     </div>
                   </div>
                   <div className="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end">
@@ -151,126 +291,11 @@ export default function AppView() {
                       Algoritmo
                     </div>
                   </div>
-                  <div className="flex lg:hidden">
-                    {/* Mobile menu button */}
-                    <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-custom-200 hover:bg-custom-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
-                      <span className="sr-only">Open main menu</span>
-                      {open ? (
-                        <XMarkIcon
-                          className="block h-6 w-6 flex-shrink-0"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Bars3Icon
-                          className="block h-6 w-6 flex-shrink-0"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </Disclosure.Button>
-                  </div>
-                  <div className="hidden lg:block">
-                    <div className="flex items-center">
-                      {/* Profile dropdown */}
-                      <Menu as="div" className="relative ml-4 flex-shrink-0">
-                        <div>
-                          <Menu.Button className="flex rounded-full text-sm text-white focus:bg-custom-900 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-custom-900">
-                            <span className="sr-only">Open user menu</span>
-                            <img
-                              className="h-8 w-8 rounded-full"
-                              src={user.imageUrl}
-                              alt=""
-                            />
-                          </Menu.Button>
-                        </div>
-                        <Transition
-                          as={Fragment}
-                          enter="transition ease-out duration-100"
-                          enterFrom="transform opacity-0 scale-95"
-                          enterTo="transform opacity-100 scale-100"
-                          leave="transition ease-in duration-75"
-                          leaveFrom="transform opacity-100 scale-100"
-                          leaveTo="transform opacity-0 scale-95"
-                        >
-                          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            {userNavigation.map((item) => (
-                              <Menu.Item key={item.name}>
-                                {({ active }) => (
-                                  <a
-                                    href={item.href}
-                                    className={classNames(
-                                      active ? "bg-gray-100" : "",
-                                      "block py-2 px-4 text-sm text-gray-700"
-                                    )}
-                                  >
-                                    {item.name}
-                                  </a>
-                                )}
-                              </Menu.Item>
-                            ))}
-                          </Menu.Items>
-                        </Transition>
-                      </Menu>
-                    </div>
-                  </div>
                 </div>
               </div>
 
               <Disclosure.Panel className="bg-custom-900 lg:hidden">
-                <div className="space-y-1 px-2 pt-2 pb-3">
-                  {navigation.map((item) => (
-                    <Disclosure.Button
-                      key={item.name}
-                      as="a"
-                      href={item.href}
-                      className={classNames(
-                        item.current
-                          ? "bg-black bg-opacity-25"
-                          : "hover:bg-custom-800",
-                        "block rounded-md py-2 px-3 text-base font-medium text-white"
-                      )}
-                    >
-                      {item.name}
-                    </Disclosure.Button>
-                  ))}
-                </div>
-                <div className="border-t border-custom-800 pt-4 pb-3">
-                  <div className="flex items-center px-4">
-                    <div className="flex-shrink-0">
-                      <img
-                        className="h-10 w-10 rounded-full"
-                        src={user.imageUrl}
-                        alt=""
-                      />
-                    </div>
-                    <div className="ml-3">
-                      <div className="text-base font-medium text-white">
-                        {user.name}
-                      </div>
-                      <div className="text-sm font-medium text-custom-200">
-                        {user.email}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="ml-auto flex-shrink-0 rounded-full p-1 text-custom-200 hover:bg-custom-800 hover:text-white focus:bg-custom-900 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-custom-900"
-                    >
-                      <span className="sr-only">View notifications</span>
-                      <BellIcon className="h-6 w-6" aria-hidden="true" />
-                    </button>
-                  </div>
-                  <div className="mt-3 px-2">
-                    {userNavigation.map((item) => (
-                      <Disclosure.Button
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block rounded-md py-2 px-3 text-base font-medium text-custom-200 hover:bg-custom-800 hover:text-white"
-                      >
-                        {item.name}
-                      </Disclosure.Button>
-                    ))}
-                  </div>
-                </div>
+                <div className="space-y-1 px-2 pt-2 pb-3"></div>
               </Disclosure.Panel>
             </nav>
             <div
@@ -319,1382 +344,1675 @@ export default function AppView() {
             </div>
             <header className="relative py-8">
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold tracking-tight text-white flex">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-8 h-8 mr-2 mt-px"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19.5 12h-15m0 0l6.75 6.75M4.5 12l6.75-6.75"
-                    />
-                  </svg>
-                  B1A23B
-                </h1>
+                {viewState !== "main" && (
+                  <h1 className="text-3xl font-bold tracking-tight text-white flex">
+                    <button onClick={() =>{
+                       setViewState("main");
+                       setNav("Identificación");
+                    }}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-8 h-8 mr-2 mt-px"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19.5 12h-15m0 0l6.75 6.75M4.5 12l6.75-6.75"
+                        />
+                      </svg>
+                    </button>
+                    {editState.id}
+                  </h1>
+                )}
               </div>
             </header>
           </>
         )}
       </Disclosure>
-
-      <main className="relative -mt-32">
-        <div className="mx-auto max-w-screen-xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-16">
-          <div className="overflow-hidden rounded-lg bg-white shadow">
-            <div className="divide-y divide-gray-200 lg:grid lg:grid-cols-12 lg:divide-y-0 lg:divide-x">
-              <aside className="py-6 lg:col-span-3">
-                <nav className="space-y-1">
-                  {subNavigation.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className={classNames(
-                        item.name === nav
-                          ? "bg-custom-500 border-custom-200 text-white hover:bg-custom-500"
-                          : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900",
-                        "group border-l-4 px-3 py-2 flex items-center text-sm font-medium"
-                      )}
-                      aria-current={item.name === nav ? "page" : undefined}
-                      onClick={() => setNav(item.name)}
-                    >
-                      <item.icon
-                        className={classNames(
-                          item.name === nav
-                            ? "text-white"
-                            : "text-gray-400 group-hover:text-gray-500",
-                          "flex-shrink-0 -ml-1 mr-3 h-6 w-6"
-                        )}
-                        aria-hidden="true"
+      {viewState === "main" && (
+        <main className="relative -mt-32">
+          <div className="mx-auto max-w-screen-xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-16">
+            <div className="overflow-hidden rounded-lg bg-white shadow">
+              <div className="py-6 px-4 sm:p-6">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 mt-4 mb-6">
+                  Bienvenido a Evaluator
+                </h1>
+                <dl className="w-full md:w-2/3 lg:w-1/2 mt-4 grid grid-cols-1 rounded-lg bg-white overflow-hidden shadow divide-y divide-gray-200 md:grid-cols-2 md:divide-y-0 md:divide-x">
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-normal text-gray-900 truncate">
+                      Culminados
+                    </dt>
+                    <dd className="mt-1 flex justify-between items-baseline md:block lg:flex">
+                      <div className="truncate flex items-baseline text-2xl font-semibold text-custom-600">
+                        {culminados()}
+                        <span className="ml-2 text-sm font-medium text-gray-500">
+                          de {resgistros.length}
+                        </span>
+                      </div>
+                    </dd>
+                  </div>
+                  <div className="px-4 py-5 sm:p-6">
+                    <dt className="text-sm font-normal text-gray-900 truncate">
+                      Pendientes
+                    </dt>
+                    <dd className="mt-1 flex justify-between items-baseline md:block lg:flex">
+                      <div className="truncate flex items-baseline text-2xl font-semibold text-red-600">
+                        {pendientes()}
+                        <span className="ml-2 text-sm font-medium text-red-400">
+                          de {resgistros.length}
+                        </span>
+                      </div>
+                    </dd>
+                  </div>
+                </dl>
+                <div className="w-full md:w-1/2 grid grid-cols-3 gap-2 my-4">
+                  <div className="flex-1 min-w-0 col-span-2">
+                    <div className="relative rounded-md shadow-sm">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MagnifyingGlassIcon
+                          className="h-5 w-5 text-gray-400"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <input
+                        type="search"
+                        name="search"
+                        className="h-10 boder outline-none focus:ring-custom-500 focus:border-custom-500 block w-full pl-10 text-sm border border-gray-300 rounded-md"
+                        placeholder="Nro de expediente"
+                        onChange={(e) => Buscar(e)}
                       />
-                      <span className="truncate">{item.name}</span>
-                    </a>
-                  ))}
-                </nav>
-              </aside>
-
-              <div className="divide-y divide-gray-200 lg:col-span-9">
-                {nav === "Identificación" && (
-                  <>
-                    {/* S1 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Titulación e inscripción
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Matriz
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nro
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Fecha
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
                     </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Solicitante
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Banco
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Oficina
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Funcionario
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {/* S3 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Cliente
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Tipo documento
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nro documento
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nombres y apellidos
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {/* S4 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Propietario
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Tipo documento
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nro documento
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nombres y apellidos
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {nav === "Localización y entorno" && (
-                  <>
-                    <Location />
-                  </>
-                )}
-                {nav === "Tipología y posesión" && (
-                  <>
-                    {/* S1 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Inmueble
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Tipo de inmueble
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Departamento</option>
-                            <option>Casa</option>
-                            <option>Terreno/lote</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Sub tipo de inmueble
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Apartamento de campo</option>
-                            <option>Apartamento de ciudad</option>
-                            <option>Apartamento de playa</option>
-                            <option>Departamento Loft</option>
-                            <option>Departamento PentHouse</option>
-                            <option>Minidepartamento</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Ocupante
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Ocupado</option>
-                            <option>Desocupado</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Uso
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Tipo de uso
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Comercio</option>
-                            <option>Vivienda</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Porcentaje de uso
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {nav === "Características del edificio" && (
-                  <>
-                    {/* S1 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Construcción y obras
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Material predominante
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Concreto</option>
-                            <option>Madera</option>
-                            <option>Adove</option>
-                            <option>Estera</option>
-                            <option>Otro</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Edad efectiva (Antigüedad)
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Estado de conservación
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Muy bueno</option>
-                            <option>Bueno</option>
-                            <option>Regular</option>
-                            <option>Malo</option>
-                            <option>Muy malo</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Descripción general
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nro de pisos
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nro de sotanos
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Nro de asensores
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Áreas comunes
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Si</option>
-                            <option>No</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Vista inmueble
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Al interior</option>
-                            <option>Al exterior - calle</option>
-                            <option>Al exterior - parque</option>
-                            <option>Al exterior - playa</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Conexión de servicios
-                          </label>
-                          <select className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm">
-                            <option>Si</option>
-                            <option>No</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Obras complementarias
-                      </h2>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Recepción
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Hall de ingreso
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Seguridad
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Cerco eléctrico
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Alarmas
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Control de accesos
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Pisina
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Zona de parrillas
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Áreas infantiles
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Canchas deportivas
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Sauna
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Gimnasio
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Parque iterno
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Zona de entretenimiento
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Cochera de visitas
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Pet friendly
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {nav === "Características del inmueble" && (
-                  <>
-                    {/* S1 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Descripción general
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Piso ocupado en edificio
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Área total (m2)
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Área construida (m2)
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Distribución
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Dormitorios
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Baños
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Estacionamiento
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Obras complementarias
-                      </h2>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Closet
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Cocina
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Repostero
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Cuarto de servicio
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Dúplex
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Triplex
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Terraza
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Vista al parque
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Vista a la ciudad
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Vista al mar
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Intercomunicador
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Jacuzzi
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-4 gap-4">
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Walk in closet
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Jardín
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Chimenea
-                            </label>
-                          </div>
-                        </div>
-                        <div className="relative flex items-start">
-                          <div className="flex h-5 items-center">
-                            <input
-                              id="comments"
-                              aria-describedby="comments-description"
-                              name="comments"
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </div>
-                          <div className="ml-3 text-sm">
-                            <label
-                              htmlFor="comments"
-                              className="font-medium text-gray-700"
-                            >
-                              Patio
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {nav === "Archivos a cargar" && (
-                  <>
-                    {/* S1 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Fotos:
-                      </h2>
-                      <div className="mt-3">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Fachada y exteriores
-                          </label>
-                          <Dropzone
-                            content={[]}
-                            setNewContent={(v) => console.log(v)}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Áreas comunes
-                          </label>
-                          <Dropzone
-                            content={[]}
-                            setNewContent={(v) => console.log(v)}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Interior
-                          </label>
-                          <Dropzone
-                            content={[]}
-                            setNewContent={(v) => console.log(v)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    {/* S2 */}
-                    <div className="py-6 px-4 sm:p-6">
-                      <h2 className="text-md font-medium leading-6 text-gray-900">
-                        Documentos
-                      </h2>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            PR Matriz
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Precio urbano
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Planos
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            CRI
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Parámetros urbanos
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                           Tasación anterior
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Cuadro de acabados
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Memoria descriptiva
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Minuta
-                          </label>
-                          <input
-                            type="text"
-                            className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {/* Buttons */}
-                <div className="flex justify-end py-4 px-4 sm:px-6 pt-6">
-                  <button
-                    type="submit"
-                    className="ml-5 inline-flex justify-center rounded-md border border-transparent bg-custom-700 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-custom-800 focus:outline-none focus:ring-2 focus:ring-custom-500 focus:ring-offset-2"
-                  >
-                    Guardar
-                  </button>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      className="h-full truncate focus:outline-none rounded-md border border-transparent bg-custom-600 py-2 px-2 md:px-3 xl:px-4 text-sm font-medium text-white shadow-sm hover:bg-custom-700 focus:ring-2 focus:ring-custom-500 focus:ring-offset-2"
+                      onClick={() => nuevoRegistro()}
+                    >
+                      Nuevo registro
+                    </button>
+                  </div>
+                </div>
+                <div className="shadow ring-1 ring-black ring-opacity-5 md:rounded-lg max-h-96 overflow-y-auto containerScroll">
+                  <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 sm:pl-6"
+                        >
+                          Nro de expediente
+                        </th>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-2 py-3.5 text-left text-xs font-semibold text-gray-900"
+                        >
+                          Cliente
+                        </th>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-2 py-3.5 text-left text-xs font-semibold text-gray-900"
+                        >
+                          Estado
+                        </th>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-2 py-3.5 text-center  text-xs font-semibold text-gray-900"
+                        >
+                          Fecha de creación
+                        </th>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-2 py-3.5 text-center  text-xs font-semibold text-gray-900"
+                        >
+                          Departamento
+                        </th>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-2 py-3.5 text-center text-xs font-semibold text-gray-900"
+                        >
+                          Provincia
+                        </th>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-2 py-3.5 text-center  text-xs font-semibold text-gray-900"
+                        >
+                          Distrito
+                        </th>
+                        <th
+                          scope="col"
+                          className="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-6"
+                        >
+                          <span className="sr-only">Más detalle</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {ordenar(resgistrosRE).map((transaction, idx) => (
+                        <tr key={transaction.id}>
+                          <td className="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-900 sm:pl-6 font-medium">
+                            {transaction.id}
+                          </td>
+                          <td className="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                            {transaction["Nombres y apellidos"] || "-"}
+                          </td>
+                          <td className="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">
+                            {transaction["state"]}
+                          </td>
+                          <td className="text-center whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                            {transaction["Fecha"] || "-"}
+                          </td>
+                          <td className="text-center whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                            {transaction["departamento"].init
+                              ? "-"
+                              : transaction["departamento"].nombre_ubigeo}
+                          </td>
+                          <td className="text-center whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                            {transaction["provincia"].init
+                              ? "-"
+                              : transaction["provincia"].nombre_ubigeo}
+                          </td>
+                          <td className="text-center  whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                            {transaction["distrito"].init
+                              ? "-"
+                              : transaction["distrito"].nombre_ubigeo}
+                          </td>
+                          <td className="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            {transaction["state"] === "En proceso" ? (
+                              <button
+                                className="text-custom-600 hover:text-custom-900"
+                                onClick={() => {
+                                  setEditState(transaction);
+                                  setViewState("edit");
+                                  setNav("Identificación");
+                                }}
+                              >
+                                Editar
+                                <span className="sr-only">, {idx}</span>
+                              </button>
+                            ) : (
+                              <button
+                                className="text-custom-600 hover:text-custom-900"
+                                onClick={() => {
+                                  setEditState(transaction);
+                                  setViewState("view");
+                                  setNav("Valoración");
+                                }}
+                              >
+                                Ver
+                                <span className="sr-only">, {idx}</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      )}
+      {viewState === "edit" && (
+        <main className="relative -mt-32">
+          <div className="mx-auto max-w-screen-xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-16">
+            <div className="overflow-hidden rounded-lg bg-white shadow">
+              <div className="divide-y divide-gray-200 lg:grid lg:grid-cols-12 lg:divide-y-0 lg:divide-x">
+                <aside className="py-6 lg:col-span-3">
+                  <nav className="space-y-1">
+                    {subNavigation.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className={classNames(
+                          item.name === nav
+                            ? "bg-custom-500 border-custom-200 text-white hover:bg-custom-500"
+                            : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900",
+                          "group border-l-4 px-3 py-2 flex items-center text-sm font-medium"
+                        )}
+                        aria-current={item.name === nav ? "page" : undefined}
+                        onClick={() => setNav(item.name)}
+                      >
+                        <item.icon
+                          className={classNames(
+                            item.name === nav
+                              ? "text-white"
+                              : "text-gray-400 group-hover:text-gray-500",
+                            "flex-shrink-0 -ml-1 mr-3 h-6 w-6"
+                          )}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{item.name}</span>
+                      </a>
+                    ))}
+                  </nav>
+                </aside>
+
+                <div className="divide-y divide-gray-200 lg:col-span-9">
+                  {nav === "Identificación" && (
+                    <>
+                      {/* S2 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Solicitante
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Banco
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Banco"]}
+                              disabled
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Funcionario
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Funcionario"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  Funcionario: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Fecha
+                            </label>
+                            <input
+                              type="date"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Fecha"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  Fecha: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {/* S3 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Cliente
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Tipo documento
+                            </label>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Tipo documento"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Tipo documento"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={editState["Tipo documento"] === "DNI"}
+                              >
+                                DNI
+                              </option>
+                              <option
+                                selected={editState["Tipo documento"] === "RUC"}
+                              >
+                                RUC
+                              </option>
+                              <option
+                                selected={
+                                  editState["Tipo documento"] === "Pasaporte"
+                                }
+                              >
+                                Pasaporte
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro documento
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Nro documento"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro documento"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nombres y apellidos
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Nombres y apellidos"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nombres y apellidos"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {nav === "Localización y entorno" && (
+                    <>
+                      <Location
+                        setEditState={setEditState}
+                        editState={editState}
+                      />
+                    </>
+                  )}
+                  {nav === "Características del inmueble" && (
+                    <>
+                      {/* S1 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Descripción general
+                        </h2>
+                        <div className="mt-3 grid grid-cols-2 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Categoria del bien
+                            </label>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Categoria del bien"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Categoria del bien"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Departamento"
+                                }
+                              >
+                                Departamento
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Vivienda Unifamiliar"
+                                }
+                              >
+                                Vivienda Unifamiliar
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Local Comercial"
+                                }
+                              >
+                                Local Comercial
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Terreno urbano"
+                                }
+                              >
+                                Terreno urbano
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Edificación en construcción (construyo)"
+                                }
+                              >
+                                Edificación en construcción (construyo)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Edificio comercial"
+                                }
+                              >
+                                Edificio comercial
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] === "Vehículo"
+                                }
+                              >
+                                Vehículo
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Almacén /Taller"
+                                }
+                              >
+                                Almacén /Taller
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] === "Hotel"
+                                }
+                              >
+                                Hotel
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Terreno Rústico (eriazo)"
+                                }
+                              >
+                                Terreno Rústico (eriazo)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] === "Oficina"
+                                }
+                              >
+                                Oficina
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Maquinaria y/o Equipo"
+                                }
+                              >
+                                Maquinaria y/o Equipo
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Centro comercial"
+                                }
+                              >
+                                Centro comercial
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Muebles y enseres"
+                                }
+                              >
+                                Muebles y enseres
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Industria"
+                                }
+                              >
+                                Industria
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Fundo Agrícola"
+                                }
+                              >
+                                Fundo Agrícola
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Estacionamiento/depósito (U.I.)"
+                                }
+                              >
+                                Estacionamiento/depósito (U.I.)
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Piso ocupado
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Piso ocupado"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Piso ocupado"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Área total (m2)
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Área total (m2)"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Área total (m2)"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Área construida (m2)
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Área construida (m2)"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Área construida (m2)"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {/* S2 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Construcción
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Posición
+                            </label>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Posición"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Posición"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={editState["Posición"] === "Exterior"}
+                              >
+                                Exterior
+                              </option>
+                              <option
+                                selected={editState["Posición"] === "Interior"}
+                              >
+                                Interior
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Edad efectiva (Antigüedad)
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Edad efectiva (Antigüedad)"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Edad efectiva (Antigüedad)"]:
+                                    e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Estado de conservación
+                            </label>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Estado de conservación"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Estado de conservación"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Muy bueno"
+                                }
+                              >
+                                Muy bueno
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Bueno"
+                                }
+                              >
+                                Bueno
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Regular"
+                                }
+                              >
+                                Regular
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] === "Malo"
+                                }
+                              >
+                                Malo
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Muy malo"
+                                }
+                              >
+                                Muy malo
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      {/* S3 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Obras complementarias
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro de estacionamientos
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState[" Nro de estacionamientos"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro de estacionamientos"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro de depositos
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState[" Nro de depositos"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro de depositos"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro de asensores
+                            </label>
+                            <input
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Nro de asensores"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro de asensores"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {nav === "Características de ejecución" && (
+                    <>
+                      {/* S1 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Parámetros
+                        </h2>
+                        <div className="mt-3 grid grid-cols-2 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Método Representado
+                            </label>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Método Representado"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Método Representado"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Método Representado"] ===
+                                  "Costo o Reposición (DIRECTO)"
+                                }
+                              >
+                                Costo o Reposición (DIRECTO)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Método Representado"] ===
+                                  "Comparación de mercado (DIRECTO)"
+                                }
+                              >
+                                Comparación de mercado (DIRECTO)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Método Representado"] ===
+                                  "Renta o capitalización (INDIRECTO)"
+                                }
+                              >
+                                Renta o capitalización (INDIRECTO)
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Moneda de la tasación
+                            </label>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Moneda de la tasación"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Moneda de la tasación"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Moneda de la tasación"] === "USD"
+                                }
+                              >
+                                USD
+                              </option>
+                              <option
+                                selected={
+                                  editState["Moneda de la tasación"] === "PEN"
+                                }
+                              >
+                                PEN
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {/* Buttons */}
+                  <div className="flex justify-end py-4 px-4 sm:px-6 pt-6">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-custom-500 focus:ring-offset-2"
+                      onClick={() => guardar()}
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="submit"
+                      className="ml-5 inline-flex justify-center rounded-md border border-transparent bg-custom-700 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-custom-800 focus:outline-none focus:ring-2 focus:ring-custom-500 focus:ring-offset-2"
+                      onClick={() => enviar()}
+                    >
+                      Enviar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
+      {viewState === "view" && (
+        <main className="relative -mt-32">
+          <div className="mx-auto max-w-screen-xl px-4 pb-6 sm:px-6 lg:px-8 lg:pb-16">
+            <div className="overflow-hidden rounded-lg bg-white shadow">
+              <div className="divide-y divide-gray-200 lg:grid lg:grid-cols-12 lg:divide-y-0 lg:divide-x">
+                <aside className="py-6 lg:col-span-3">
+                  <nav className="space-y-1">
+                    {subNavigationView.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className={classNames(
+                          item.name === nav
+                            ? "bg-custom-500 border-custom-200 text-white hover:bg-custom-500"
+                            : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900",
+                          "group border-l-4 px-3 py-2 flex items-center text-sm font-medium"
+                        )}
+                        aria-current={item.name === nav ? "page" : undefined}
+                        onClick={() => setNav(item.name)}
+                      >
+                        <item.icon
+                          className={classNames(
+                            item.name === nav
+                              ? "text-white"
+                              : "text-gray-400 group-hover:text-gray-500",
+                            "flex-shrink-0 -ml-1 mr-3 h-6 w-6"
+                          )}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{item.name}</span>
+                      </a>
+                    ))}
+                  </nav>
+                </aside>
+
+                <div className="divide-y divide-gray-200 lg:col-span-9">
+                {nav === "Valoración" && (
+                    <>
+                      {/* S2 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Resultado
+                        </h2>
+                        <div className="mt-3 grid grid-cols-2 gap-4">
+                          <div>
+                            
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {nav === "Identificación" && (
+                    <>
+                      {/* S2 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Solicitante
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Banco
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Banco"]}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Funcionario
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Funcionario"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  Funcionario: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Fecha
+                            </label>
+                            <input
+                              disabled
+                              type="date"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Fecha"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  Fecha: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {/* S3 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Cliente
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Tipo documento
+                            </label>
+                            <select
+                              disabled
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Tipo documento"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Tipo documento"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={editState["Tipo documento"] === "DNI"}
+                              >
+                                DNI
+                              </option>
+                              <option
+                                selected={editState["Tipo documento"] === "RUC"}
+                              >
+                                RUC
+                              </option>
+                              <option
+                                selected={
+                                  editState["Tipo documento"] === "Pasaporte"
+                                }
+                              >
+                                Pasaporte
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro documento
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Nro documento"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro documento"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nombres y apellidos
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Nombres y apellidos"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nombres y apellidos"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {nav === "Localización y entorno" && (
+                    <>
+                      <LocationView
+                        setEditState={setEditState}
+                        editState={editState}
+                      />
+                    </>
+                  )}
+                  {nav === "Características del inmueble" && (
+                    <>
+                      {/* S1 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Descripción general
+                        </h2>
+                        <div className="mt-3 grid grid-cols-2 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Categoria del bien
+                            </label>
+                            <select
+                              disabled
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Categoria del bien"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Categoria del bien"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Departamento"
+                                }
+                              >
+                                Departamento
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Vivienda Unifamiliar"
+                                }
+                              >
+                                Vivienda Unifamiliar
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Local Comercial"
+                                }
+                              >
+                                Local Comercial
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Terreno urbano"
+                                }
+                              >
+                                Terreno urbano
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Edificación en construcción (construyo)"
+                                }
+                              >
+                                Edificación en construcción (construyo)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Edificio comercial"
+                                }
+                              >
+                                Edificio comercial
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] === "Vehículo"
+                                }
+                              >
+                                Vehículo
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Almacén /Taller"
+                                }
+                              >
+                                Almacén /Taller
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] === "Hotel"
+                                }
+                              >
+                                Hotel
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Terreno Rústico (eriazo)"
+                                }
+                              >
+                                Terreno Rústico (eriazo)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] === "Oficina"
+                                }
+                              >
+                                Oficina
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Maquinaria y/o Equipo"
+                                }
+                              >
+                                Maquinaria y/o Equipo
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Centro comercial"
+                                }
+                              >
+                                Centro comercial
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Muebles y enseres"
+                                }
+                              >
+                                Muebles y enseres
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Industria"
+                                }
+                              >
+                                Industria
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Fundo Agrícola"
+                                }
+                              >
+                                Fundo Agrícola
+                              </option>
+                              <option
+                                selected={
+                                  editState["Categoria del bien"] ===
+                                  "Estacionamiento/depósito (U.I.)"
+                                }
+                              >
+                                Estacionamiento/depósito (U.I.)
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Piso ocupado
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Piso ocupado"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Piso ocupado"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Área total (m2)
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Área total (m2)"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Área total (m2)"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Área construida (m2)
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Área construida (m2)"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Área construida (m2)"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {/* S2 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Construcción
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Posición
+                            </label>
+                            <select
+                              disabled
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Posición"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Posición"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={editState["Posición"] === "Exterior"}
+                              >
+                                Exterior
+                              </option>
+                              <option
+                                selected={editState["Posición"] === "Interior"}
+                              >
+                                Interior
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Edad efectiva (Antigüedad)
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Edad efectiva (Antigüedad)"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Edad efectiva (Antigüedad)"]:
+                                    e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Estado de conservación
+                            </label>
+                            <select
+                              disabled
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Estado de conservación"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Estado de conservación"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Muy bueno"
+                                }
+                              >
+                                Muy bueno
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Bueno"
+                                }
+                              >
+                                Bueno
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Regular"
+                                }
+                              >
+                                Regular
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] === "Malo"
+                                }
+                              >
+                                Malo
+                              </option>
+                              <option
+                                selected={
+                                  editState["Estado de conservación"] ===
+                                  "Muy malo"
+                                }
+                              >
+                                Muy malo
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      {/* S3 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Obras complementarias
+                        </h2>
+                        <div className="mt-3 grid grid-cols-3 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro de estacionamientos
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState[" Nro de estacionamientos"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro de estacionamientos"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro de depositos
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState[" Nro de depositos"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro de depositos"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Nro de asensores
+                            </label>
+                            <input
+                              disabled
+                              type="text"
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Nro de asensores"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Nro de asensores"]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {nav === "Características de ejecución" && (
+                    <>
+                      {/* S1 */}
+                      <div className="py-6 px-4 sm:p-6">
+                        <h2 className="text-md font-medium leading-6 text-gray-900">
+                          Parámetros
+                        </h2>
+                        <div className="mt-3 grid grid-cols-2 gap-4">
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Método Representado
+                            </label>
+                            <select
+                              disabled
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Método Representado"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Método Representado"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Método Representado"] ===
+                                  "Costo o Reposición (DIRECTO)"
+                                }
+                              >
+                                Costo o Reposición (DIRECTO)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Método Representado"] ===
+                                  "Comparación de mercado (DIRECTO)"
+                                }
+                              >
+                                Comparación de mercado (DIRECTO)
+                              </option>
+                              <option
+                                selected={
+                                  editState["Método Representado"] ===
+                                  "Renta o capitalización (INDIRECTO)"
+                                }
+                              >
+                                Renta o capitalización (INDIRECTO)
+                              </option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="first-name"
+                              className="block text-sm font-medium text-gray-700"
+                            >
+                              Moneda de la tasación
+                            </label>
+                            <select
+                              disabled
+                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
+                              value={editState["Moneda de la tasación"]}
+                              onChange={(e) =>
+                                setEditState({
+                                  ...editState,
+                                  ["Moneda de la tasación"]:
+                                    e.target.options[e.target.selectedIndex]
+                                      .textContent,
+                                })
+                              }
+                            >
+                              <option disabled selected></option>
+                              <option
+                                selected={
+                                  editState["Moneda de la tasación"] === "USD"
+                                }
+                              >
+                                USD
+                              </option>
+                              <option
+                                selected={
+                                  editState["Moneda de la tasación"] === "PEN"
+                                }
+                              >
+                                PEN
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
     </div>
   );
 }

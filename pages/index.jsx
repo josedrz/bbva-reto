@@ -1,16 +1,14 @@
 /* Next imports */
 import Head from "next/head";
-// import HomeView from "components/Home";
+import AppView from "components/App";
+
 export default function Home() {
   return (
     <>
       <Head>
         {/* Basic */}
         <title>Reto BBVA</title>
-        <meta
-          name="description"
-          content="Reto de valorizaciones - BBVA"
-        />
+        <meta name="description" content="Reto de valorizaciones - BBVA" />
         <link rel="icon" href="/favicon.svg" />
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -37,8 +35,7 @@ export default function Home() {
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="600" />
       </Head>
-      {/* <HomeView /> */}
-      <>Landing</>
+      <AppView />
     </>
   );
 }
