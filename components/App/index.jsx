@@ -152,7 +152,19 @@ export default function AppView(props) {
     return new Promise((resolve, reject) => {
       var myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
-
+      const vias = [
+        "Calle",
+        "Jiron",
+        "Avenida",
+        "Pasaje",
+        "Carretera",
+        "Manzana",
+        "Lote",
+        "Parcela",
+        "Fundo",
+        "Sin vía",
+      ];
+      //vias.findIndex((item) => item === editState["Tipo de vía"])
       var raw = JSON.stringify({
         "type": "new",
         "ide_sol_id": "",
@@ -195,6 +207,7 @@ export default function AppView(props) {
       // llama a la API
       const response = await fexhAPI();
       const data = JSON.parse(response).body.data[0];
+      console.log(data);
       setEditState({
         ...editState,
         state: "Culminado",
