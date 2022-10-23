@@ -151,10 +151,26 @@ export default function AppView(props) {
   const fexhAPI = () => {
     return new Promise((resolve, reject) => {
       var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "text/plain");
+      myHeaders.append("Content-Type", "application/json");
 
-      var raw =
-        '{"type": "new","vacio": 1,"data_update": {"ide_sol_banco":"BBVA"}\r\n}';
+      var raw = JSON.stringify({
+        "type": "new",
+        "ide_sol_id": "",
+        "data_update": {
+          "tipo_de_via": 1,
+          "numero_de_estacionamiento": editState["Nro de estacionamientos"],
+          "depositos": editState["Nro de depositos"],
+          "latitud_decimal": editState["lat"],
+          "longitud_decimal": editState["lng"],
+          "area_construccion": editState["Área construida (m2)"],
+          "area_terreno": editState["Área total (m2)"],
+          "distrito": editState["distrito"]["nombre_ubigeo"],
+          "estado_de_conservacion": editState["Estado de conservación"],
+          "categoria_del_bien": editState["Categoria del bien"],
+          "metodo_representado": editState["Método Representado"],
+          "edad": editState["Edad efectiva (Antigüedad)"],
+        }
+      });
 
       var requestOptions = {
         method: "POST",
@@ -167,7 +183,7 @@ export default function AppView(props) {
         "https://3lnpnoshs9.execute-api.us-east-1.amazonaws.com/production-evaluator/save_input_executive",
         requestOptions
       )
-        .then((response) => response.json())
+        .then((response) => response.text())
         .then((result) => resolve(result))
         .catch((error) => console.log("error", error));
     });
@@ -177,15 +193,32 @@ export default function AppView(props) {
     const id = doc(collection(db, "registros"), editState.key);
     try {
       // llama a la API
-      // const response = await fexhAPI();
+      const response = await fexhAPI();
+      const data = JSON.parse(response).body.data[0];
+      setEditState({
+        ...editState,
+        state: "Culminado",
+        valuacion: {
+          valorUSD: data.res_val_precioestimadousd,
+          valorPEN: data.res_val_precioestimadopen,
+          cambio: data.res_val_tipocambio,
+          p2019: data.res_ana_precioestimadopen2019,
+          p2020: data.res_ana_precioestimadopen2020,
+          p2021: data.res_ana_precioestimadopen2021,
+          p2022: data.res_ana_precioestimadopen2022,
+        },
+      });
       await updateDoc(id, {
         ...editState,
         state: "Culminado",
         valuacion: {
-          valor: 2000,
-          a1: 1000,
-          a2: 800,
-          a3: 1990,
+          valorUSD: data.res_val_precioestimadousd,
+          valorPEN: data.res_val_precioestimadopen,
+          cambio: data.res_val_tipocambio,
+          p2019: data.res_ana_precioestimadopen2019,
+          p2020: data.res_ana_precioestimadopen2020,
+          p2021: data.res_ana_precioestimadopen2021,
+          p2022: data.res_ana_precioestimadopen2022,
         },
       });
       setViewState("view");
@@ -308,7 +341,7 @@ export default function AppView(props) {
                       <div className="flex"></div>
                     </div>
                   </div>
-                  <div className="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end">
+                  <div className="flex flex-1 justify-end px-2 lg:ml-6 lg:justify-end">
                     <a
                       className="text-white font-bold cursor-pointer mx-4"
                       target="_blank"
@@ -1243,42 +1276,6 @@ export default function AppView(props) {
                               </option>
                             </select>
                           </div>
-                          <div>
-                            <label
-                              htmlFor="first-name"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Moneda de la tasación
-                            </label>
-                            <select
-                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                              value={editState["Moneda de la tasación"]}
-                              onChange={(e) =>
-                                setEditState({
-                                  ...editState,
-                                  ["Moneda de la tasación"]:
-                                    e.target.options[e.target.selectedIndex]
-                                      .textContent,
-                                })
-                              }
-                            >
-                              <option disabled selected></option>
-                              <option
-                                selected={
-                                  editState["Moneda de la tasación"] === "USD"
-                                }
-                              >
-                                USD
-                              </option>
-                              <option
-                                selected={
-                                  editState["Moneda de la tasación"] === "PEN"
-                                }
-                              >
-                                PEN
-                              </option>
-                            </select>
-                          </div>
                         </div>
                       </div>
                     </>
@@ -1351,15 +1348,49 @@ export default function AppView(props) {
                         </h2>
                         <div className="mt-3 grid grid-cols-2 gap-4">
                           <div className="bg-gray-100 shadow rounded-lg font-semibold py-8 px-4">
-                            <div className="text-xs text-gray-500 my-2">
+                            <div className="text-xs text-gray-600 my-2">
                               Valoración estimada:
                             </div>
-                            <div className="text-lg">
-                              {editState["valuacion"].valor}{" "}
-                              {editState["Moneda de la tasación"]}
+                            <div className="text-xs text-gray-600 my-2">
+                              USD:
+                            </div>
+                            <div className="text-2xl">
+                              {editState["valuacion"].valorUSD || "N/A"}
+                            </div>
+                            <div className="text-xs text-gray-400 my-2">
+                              Tipo de cambio:  {editState["valuacion"].cambio || "N/A"}
+                            </div>
+                            <div className="text-xs text-gray-600 my-2">
+                              PEN:
+                            </div>
+                            <div className="text-2xl">
+                              {editState["valuacion"].valorPEN || "N/A"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 my-2">
+                              Precio estimado 2019 (PEN)
+                            </div>
+                            <div className="text-md">
+                            {editState["valuacion"].p2019 || "N/A"}
                             </div>
                             <div className="text-xs text-gray-500 my-2">
-                              Tipo de cambio: 3.94
+                              Precio estimado 2020 (PEN)
+                            </div>
+                            <div className="text-md">
+                            {editState["valuacion"].p2020 || "N/A"}
+                            </div>
+                            <div className="text-xs text-gray-500 my-2">
+                              Precio estimado 2021 (PEN)
+                            </div>
+                            <div className="text-md">
+                            {editState["valuacion"].p2021 || "N/A"}
+                            </div>
+                            <div className="text-xs text-gray-500 my-2">
+                              Precio estimado 2022 (PEN)
+                            </div>
+                            <div className="text-md">
+                            {editState["valuacion"].p2022 || "N/A"}
                             </div>
                           </div>
                         </div>
@@ -2000,43 +2031,6 @@ export default function AppView(props) {
                                 }
                               >
                                 Renta o capitalización (INDIRECTO)
-                              </option>
-                            </select>
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="first-name"
-                              className="block text-sm font-medium text-gray-700"
-                            >
-                              Moneda de la tasación
-                            </label>
-                            <select
-                              disabled
-                              className="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-custom-500 focus:outline-none focus:ring-custom-500 sm:text-sm"
-                              value={editState["Moneda de la tasación"]}
-                              onChange={(e) =>
-                                setEditState({
-                                  ...editState,
-                                  ["Moneda de la tasación"]:
-                                    e.target.options[e.target.selectedIndex]
-                                      .textContent,
-                                })
-                              }
-                            >
-                              <option disabled selected></option>
-                              <option
-                                selected={
-                                  editState["Moneda de la tasación"] === "USD"
-                                }
-                              >
-                                USD
-                              </option>
-                              <option
-                                selected={
-                                  editState["Moneda de la tasación"] === "PEN"
-                                }
-                              >
-                                PEN
                               </option>
                             </select>
                           </div>
