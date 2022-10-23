@@ -148,11 +148,36 @@ export default function AppView(props) {
       console.log(error);
     }
   };
+  const fexhAPI = () => {
+    return new Promise((resolve, reject) => {
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "text/plain");
+
+      var raw =
+        '{"type": "new","vacio": 1,"data_update": {"ide_sol_banco":"BBVA"}\r\n}';
+
+      var requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow",
+      };
+
+      fetch(
+        "https://3lnpnoshs9.execute-api.us-east-1.amazonaws.com/production-evaluator/save_input_executive",
+        requestOptions
+      )
+        .then((response) => response.json())
+        .then((result) => resolve(result))
+        .catch((error) => console.log("error", error));
+    });
+  };
   const enviar = async () => {
     const db = getFirestore();
     const id = doc(collection(db, "registros"), editState.key);
     try {
       // llama a la API
+      // const response = await fexhAPI();
       await updateDoc(id, {
         ...editState,
         state: "Culminado",
@@ -284,12 +309,13 @@ export default function AppView(props) {
                     </div>
                   </div>
                   <div className="flex flex-1 justify-center px-2 lg:ml-6 lg:justify-end">
-                    <div className="text-white font-bold cursor-pointer mx-4">
-                      Equipo
-                    </div>
-                    <div className="text-white font-bold cursor-pointer mx-4">
+                    <a
+                      className="text-white font-bold cursor-pointer mx-4"
+                      target="_blank"
+                      href="https://docs.google.com/presentation/d/1ytgLNSJ_cQJBcsl111HwwRDUYoHZP4txUxW3WICB3_Y/edit?usp=sharing"
+                    >
                       Algoritmo
-                    </div>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -1325,12 +1351,16 @@ export default function AppView(props) {
                         </h2>
                         <div className="mt-3 grid grid-cols-2 gap-4">
                           <div className="bg-gray-100 shadow rounded-lg font-semibold py-8 px-4">
-                            <div className="text-xs text-gray-500 my-2">Valoración estimada:</div>
+                            <div className="text-xs text-gray-500 my-2">
+                              Valoración estimada:
+                            </div>
                             <div className="text-lg">
                               {editState["valuacion"].valor}{" "}
                               {editState["Moneda de la tasación"]}
                             </div>
-                            <div className="text-xs text-gray-500 my-2">Tipo de cambio: 3.94</div>
+                            <div className="text-xs text-gray-500 my-2">
+                              Tipo de cambio: 3.94
+                            </div>
                           </div>
                         </div>
                       </div>
