@@ -346,10 +346,12 @@ export default function AppView(props) {
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {viewState !== "main" && (
                   <h1 className="text-3xl font-bold tracking-tight text-white flex">
-                    <button onClick={() =>{
-                       setViewState("main");
-                       setNav("Identificación");
-                    }}>
+                    <button
+                      onClick={() => {
+                        setViewState("main");
+                        setNav("Identificación");
+                      }}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -1314,7 +1316,7 @@ export default function AppView(props) {
                 </aside>
 
                 <div className="divide-y divide-gray-200 lg:col-span-9">
-                {nav === "Valoración" && (
+                  {nav === "Valoración" && (
                     <>
                       {/* S2 */}
                       <div className="py-6 px-4 sm:p-6">
@@ -1322,8 +1324,13 @@ export default function AppView(props) {
                           Resultado
                         </h2>
                         <div className="mt-3 grid grid-cols-2 gap-4">
-                          <div className="bg-gray-100 shadow rounded-lg h-10 text-md font-semibold text-center pt-4">
-                              {editState["valuacion"].valor} {editState["Moneda de la tasación"]}
+                          <div className="bg-gray-100 shadow rounded-lg text-md font-semibold text-center py-8">
+                            <div className="text-xs text-gray-500 my-2">Valoración estimada:</div>
+                            <div>
+                              {editState["valuacion"].valor}{" "}
+                              {editState["Moneda de la tasación"]}
+                            </div>
+                            <div className="text-xs text-gray-500 my-2">Tipo de cambio: 3.94</div>
                           </div>
                         </div>
                       </div>
