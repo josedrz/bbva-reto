@@ -1324,9 +1324,9 @@ export default function AppView(props) {
                           Resultado
                         </h2>
                         <div className="mt-3 grid grid-cols-2 gap-4">
-                          <div className="bg-gray-100 shadow rounded-lg text-md font-semibold text-center py-8">
+                          <div className="bg-gray-100 shadow rounded-lg font-semibold py-8 px-4">
                             <div className="text-xs text-gray-500 my-2">Valoración estimada:</div>
-                            <div>
+                            <div className="text-lg">
                               {editState["valuacion"].valor}{" "}
                               {editState["Moneda de la tasación"]}
                             </div>
